@@ -21,6 +21,8 @@ import ExtractEmittedAssets from '../webpack/plugins/extract-emitted-assets';
 
 const isVerbose = process.env.PAW_VERBOSE === 'true';
 
+console.log('=== Final context variables "process.env" ===\n', JSON.stringify(process.env, null, 2));
+
 const stats: webpack.Stats.ToStringOptionsObject = {
   // fallback value for stats options when
   // an option is not defined (has precedence over local webpack defaults)
@@ -369,18 +371,27 @@ try {
   webpack(webConfig, (webErr: Error, webStats: webpack.Stats) => {
     if (webErr || webStats.hasErrors()) {
       // eslint-disable-next-line
-      console.log(webErr);
+      webErr && console.error(webErr);
       // Handle errors here
       // eslint-disable-next-line
-      webStats.toJson && console.log(webStats.toJson());
+      webStats.toJson && console.error(JSON.stringify(webStats.toJson(), null, 2));
       // eslint-disable-next-line
       console.log('Web compiler error occurred. Please handle error here');
       return;
     }
     // eslint-disable-next-line
     console.log(webStats.toString(stats));
-    webpack(serverConfig, (serverErr, serverStats) => {
+    webpack(serverConfig, (serverErr: Error, serverStats: webpack.Stats) => {
       if (serverErr || serverStats.hasErrors()) {
+        if (serverErr) {
+          console.error(serverErr);
+        }
+        // Handle errors here
+        // eslint-disable-next-line
+        if (serverStats.toJson) {
+          console.error(JSON.stringify(serverStats.toJson(), null, 2));
+        }
+
         // Handle errors here
         // eslint-disable-next-line
         console.log('Server Compiler error occurred. Please handle error here');
